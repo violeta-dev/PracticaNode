@@ -1,10 +1,11 @@
 'use strict'
 
 const express = require('express')
-const app = express()
 const path = require('path')
+var cookieParser = require('cookie-parser')
 const bodyParser = require('body-parser')
 require('dotenv').config()
+var app = express()
 
 // Conectar a la base de datos
 require('./lib/server')
@@ -13,7 +14,10 @@ require('./models/anuncio')
 // settings
 
 app.set('views', path.join(__dirname, 'views'))
-app.set('view engine', 'ejs')
+app.set('view engine', 'html')
+app.engine('html', require('ejs').__express)
+
+// app.set('view engine', 'ejs')
 
 // middlewares
 app.use((req, res, next) => {
@@ -23,10 +27,22 @@ app.use((req, res, next) => {
 app.use(express.urlencoded({ extended: false }))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(cookieParser())
+// Setup de i18n
+// Recordar que para que funcione la cookie 'nodeapi-locale' debemos inicilizar
+// i18n tras el middleware que lee las cookies
+const i18n = require('./lib/i18nConfigure')
+app.use(i18n.init) // metemos un middleware a express
+
+const loginController = require('./routes/loginController')
 
 // website routes
 app.use(require('./routes/index'))
 
+app.use('/change-locale', require('./routes/change-locale'))
+
+app.get('/login', loginController.index)
+// app.post('/login', loginController.post)
 // API routes
 app.use('/api/anuncios', require('./routes/api/anuncios'))
 
@@ -56,17 +72,18 @@ app.use(function (err, req, res, next) {
   res.locals.message = err.message
   res.locals.error = req.app.get('env') === 'development' ? err : {}
 
-  // render the error page
-  res.render('error')
+
 })
 
 // Servidor en puerto 3000
-var port = process.env.PORT || '5000'
+var port = process.env.PORT || '3000'
 app.set('port', port)
 
 async function main () {
   await app.listen(port)
-  console.log('Server on port 5000')
+  console.log('Server on port 3000')
 }
 
 main()
+
+//module.exports = app

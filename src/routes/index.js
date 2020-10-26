@@ -1,6 +1,7 @@
 'use strict'
 const express = require('express')
 const router = express.Router()
+// const app = express()
 const fs = require('fs')
 const Anuncio = require('../models/anuncio')
 
@@ -22,6 +23,8 @@ router.get('/', async (req, res, next) => {
 router.get('/new-item', (req, res) => {
   res.render('new-item')
 })
+
+
 
 // Get anuncio por id  GET/anuncios/id
 router.get('/:_id', async (req, res, next) => {
