@@ -5,6 +5,7 @@ var router = express.Router()
 var mongoose = require('mongoose')
 var anuncios = mongoose.model('anuncios')
 const multer = require('multer')
+const connectionPromise = require('./connectAMQP')
 
 // Configuro multer y rutas y además cargo las imágenes en /src/public/img
 
@@ -19,8 +20,11 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage })
 
-router.post('/public', upload.single('imagen'), (req, res, next) => {
+router.post('/upload', upload.single('photo'), (req, res, next) => {
   console.log(req.file)
+  // obtengo el path de la imagen nueva en anuncio.photo
+  console.log(req.file.path)
+  publisher(req.file.originalname)
   res.send('ok')
 })
 
@@ -111,4 +115,30 @@ router.delete('/:id', function (req, res, next) {
   })
 })
 
+// Creamos el publisher que manda las tareas al worker/consumer para que las haga
+function publisher (images) {
+  const queueName = 'tareas'
+  //const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+  main().catch(err => console.log('Hubo un error:', err))
+
+  async function main () {
+  // conectar al servidor AMQP
+    const conn = await connectionPromise
+    // conectar a un canal
+    const channel = await conn.createChannel()
+    // asegurarnos que tenemos una cola donde publicar
+    await channel.assertQueue(queueName, {
+      durable: true // la cola sobrevive a reinicios del broker (rabbitMQ)
+    })
+
+    const mensaje = images
+
+    // enviar un mensaje a la cola
+    channel.sendToQueue(queueName, Buffer.from(JSON.stringify(mensaje)), {
+      persistent: true // el mensaje sobrevive a reinicios del broker
+    })
+
+    console.log('Thumbnail hecho en /src/routes/api')
+  }
+}
 module.exports = router

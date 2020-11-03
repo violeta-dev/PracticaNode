@@ -11,6 +11,10 @@ var app = express()
 require('./lib/server')
 require('./models/anuncio')
 
+// Poner autenticacion
+const loginController = require('./routes/loginController')
+const jwtAuth = require('./lib/jwtAuth')
+
 // settings
 
 app.set('views', path.join(__dirname, 'views'))
@@ -24,26 +28,26 @@ app.use((req, res, next) => {
   console.log(`${req.url} -${req.method}`)
   next()
 })
-app.use(express.urlencoded({ extended: false }))
+
+app.use(express.urlencoded({ extended: true }))
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(cookieParser())
 // Setup de i18n
-// Recordar que para que funcione la cookie 'nodeapi-locale' debemos inicilizar
-// i18n tras el middleware que lee las cookies
+
 const i18n = require('./lib/i18nConfigure')
 app.use(i18n.init) // metemos un middleware a express
 
-const loginController = require('./routes/loginController')
-
 // website routes
-app.use(require('./routes/index'))
+app.use('/', require('./routes/index'))
 
 app.use('/change-locale', require('./routes/change-locale'))
 
 app.get('/login', loginController.index)
 // app.post('/login', loginController.post)
-// API routes
+// API routes con JWT
+app.post('/api/loginJWT', loginController.postJWT)
+app.use('/api/anuncios', jwtAuth(), require('./routes/api/anuncios'))
 app.use('/api/anuncios', require('./routes/api/anuncios'))
 
 // static files (fotos, archivos,estilos,etc)
@@ -72,7 +76,8 @@ app.use(function (err, req, res, next) {
   res.locals.message = err.message
   res.locals.error = req.app.get('env') === 'development' ? err : {}
 
-
+  // render the error page
+  res.render('error')
 })
 
 // Servidor en puerto 3000
@@ -86,4 +91,4 @@ async function main () {
 
 main()
 
-//module.exports = app
+module.exports = app

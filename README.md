@@ -54,8 +54,32 @@ npm start
 
 ```sh
 npm run dev
+
 ```
-## URL request
+## Autenticación
+
+Hecemos un POST con POSTMAN a http://localhost:3000/api/loginJWT con Body elegimos x-www-form-urlencoded que es lo que tenemos para parsear el body en index.js y ponemos email  user@example.com y password 1234. Nos devuleve un token y ese lo usamos como Authorization header en nuestros API requests en http://localhost:3000/api/anuncios
+Si no existe token, está mal o está expirado nos dará un error distinto.
+
+También he hecho un login en http://localhost:3000/login y la web se autentica con user@example.com y password 1234
+
+## Internacionalización
+En la web en http://localhost:3000/ hay un menú para cambiar de español a inglé y viceversa
+
+## Trabajo en segundo plano
+NOTA: Tiene que estar " npm run dev" lanzado, el publisher está en anuncios.js
+En /src/routes/api lanzar el worker con 
+```sh
+node consumer.js
+
+```
+Cuando se haga un post de un archivo tipo file en POSTMAN a http://localhost:3000/api/anuncios/upload con una imagen, con campo llamado "photo", se crea un thumbnail con prefijo fecha de hoy un thumbnail.jpg en el mismo  /src/routes/api/anuncios por el worker(consumer.js). En /src/routes/api/anuncios.js está el publisher usando Rabbitmq, que se llama al hacer el POST en la API.
+
+
+## Las URLs de las imagenes las devuelve GET /api/anuncios
+Ejemplo:
+http://localhost:3000/api/anuncios
+http://localhost:3000/img/umbrella.jpeg
 
 ## Filtrar anuncios por ID
 

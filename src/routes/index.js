@@ -4,6 +4,8 @@ const router = express.Router()
 // const app = express()
 const fs = require('fs')
 const Anuncio = require('../models/anuncio')
+const loginController = require('./loginController')
+const privadoController = require('./privadoController')
 
 const jsonItem = fs.readFileSync('src/anuncios.json', 'utf-8')
 let items = JSON.parse(jsonItem)
@@ -19,15 +21,18 @@ router.get('/', async (req, res, next) => {
   }
 })
 
+router.get('/login', loginController.index)
+router.post('/login', loginController.post)
+router.get('/privado', privadoController.index)
+
 // ruta para nuevo Anuncio
 router.get('/new-item', (req, res) => {
   res.render('new-item')
 })
 
-
-
 // Get anuncio por id  GET/anuncios/id
-router.get('/:_id', async (req, res, next) => {
+// '/:_id'
+router.get('/anuncios/:_id', async (req, res, next) => {
   try {
     const _id = req.params._id
     const anuncio = await Anuncio.findOne({ _id: _id })
