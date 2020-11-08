@@ -12,17 +12,17 @@ async function main () {
   // conectar al servidor AMQP
   const conn = await connectionPromise
 
-  // conectar a un canal
+  // conectar al canal
   const channel = await conn.createChannel()
 
-  // asegurarnos que tenemos una cola donde publicar
+  // cola donde publicar
   await channel.assertQueue(queueName, {
-    durable: true // la cola sobrevive a reinicios del broker (rabbitMQ)
+    durable: true 
   })
-  // cuantos mensajes quiero procesar en paralelo (número de deuda de acks)
+  // mensajes en paralelo
   channel.prefetch(1)
 
-  // nos suscribimos a una cola
+  // suscribir a la cola
   channel.consume(queueName, msg => {
     // hago el trabajo que tenga que hacer
     // Cojo en path de la imagen y se la paso a jimp
@@ -42,8 +42,8 @@ async function main () {
       .catch(err => {
         console.error(err)
       })
-    // y cuando haya terminado de hacer el trabajo
+    
 
-    channel.ack(msg) // indico a la cola que el mensaje está procesado correctamente
+    channel.ack(msg) // trabajo realizado correctamente
   })
 }
